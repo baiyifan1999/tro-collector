@@ -4,6 +4,8 @@ import time
 import requests
 from dotenv import load_dotenv
 
+from collectors.logger import collector_logger as logger
+
 load_dotenv()
 
 COURTLISTENER_TOKEN = os.getenv("COURTLISTENER_TOKEN")
@@ -35,7 +37,7 @@ def request_with_retry(url, params=None):
                     BASE_BACKOFF_SECONDS * (2 ** attempt), MAX_BACKOFF_SECONDS
                 )
 
-            print(
+            logger.warning(
                 f"Got {response.status_code} for {url}, "
                 f"retrying in {delay:.1f}s (attempt {attempt + 1}/{MAX_RETRIES})"
             )
@@ -59,7 +61,7 @@ def search_tro_cases():
     try:
         response = request_with_retry(SEARCH_URL, params=params)
     except requests.RequestException as e:
-        print(f"Error searching TRO cases: {e}")
+        logger.error(f"Error searching TRO cases: {e}")
         return []
 
     data = response.json()
@@ -84,7 +86,7 @@ def fetch_parties(docket_id):
     try:
         response = request_with_retry(PARTIES_URL, params={"docket": docket_id})
     except requests.RequestException as e:
-        print(f"Error fetching parties for docket {docket_id}: {e}")
+        logger.error(f"Error fetching parties for docket {docket_id}: {e}")
         return []
 
     data = response.json()
@@ -112,12 +114,12 @@ def collect_all():
         case_name = case.get("case_name")
         docket_id = case.get("id")
 
-        print(f"Processing case: {case_name} (docket id: {docket_id})")
+        logger.info(f"Processing case: {case_name} (docket id: {docket_id})")
 
         try:
             defendants = fetch_parties(docket_id)
         except Exception as e:
-            print(f"Error processing case {case_name}: {e}")
+            logger.error(f"Error processing case {case_name}: {e}")
             continue
 
         collected.append(

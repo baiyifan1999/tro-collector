@@ -1,6 +1,7 @@
 import re
 
 from models.database import get_connection
+from collectors.logger import cleaner_logger as logger
 
 PLACEHOLDER_PATTERNS = [
     r"Does\s+\d+",
@@ -102,4 +103,4 @@ def clean_defendants():
     cursor.close()
     conn.close()
 
-    print(f"Valid defendants: {valid_count}, filtered out: {filtered_count}")
+    logger.info(f"Valid defendants: {valid_count}, filtered out: {filtered_count}")
