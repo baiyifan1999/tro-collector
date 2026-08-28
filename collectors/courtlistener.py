@@ -140,6 +140,7 @@ def collect_all():
                 "court": case.get("court"),
                 "date_filed": case.get("date_filed"),
                 "docket_number": case.get("docket_number"),
+                "docket_id": docket_id,
                 "defendants": defendants,
             }
         )

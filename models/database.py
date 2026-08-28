@@ -28,10 +28,12 @@ def init_db():
         """
         CREATE TABLE IF NOT EXISTS cases (
             id INT AUTO_INCREMENT PRIMARY KEY,
+            docket_id INT,
             case_name TEXT,
             court VARCHAR(100),
             date_filed VARCHAR(50),
-            docket_number VARCHAR(100) UNIQUE
+            docket_number VARCHAR(100) UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
     )
@@ -78,10 +80,11 @@ def save_cases(cases_list):
         try:
             cursor.execute(
                 """
-                INSERT INTO cases (case_name, court, date_filed, docket_number)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO cases (docket_id, case_name, court, date_filed, docket_number)
+                VALUES (%s, %s, %s, %s, %s)
                 """,
                 (
+                    case.get("docket_id"),
                     case.get("case_name"),
                     case.get("court"),
                     case.get("date_filed"),
