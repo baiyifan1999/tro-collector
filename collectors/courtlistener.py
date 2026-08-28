@@ -16,38 +16,52 @@ PARTIES_URL = f"{BASE_URL}/parties/"
 
 HEADERS = {"Authorization": f"Token {COURTLISTENER_TOKEN}"}
 
-MAX_RETRIES = 4
+MAX_RETRIES = 3
 BASE_BACKOFF_SECONDS = 1
-MAX_BACKOFF_SECONDS = 10
 
 
 def request_with_retry(url, params=None):
     for attempt in range(MAX_RETRIES + 1):
-        response = requests.get(url, headers=HEADERS, params=params)
+        try:
+            response = requests.get(url, headers=HEADERS, params=params)
+        except requests.RequestException as e:
+            logger.error(f"Network error requesting {url}: {e}")
+            return None
 
-        if response.status_code == 429 or response.status_code >= 500:
+        status = response.status_code
+
+        if status == 429:
             if attempt == MAX_RETRIES:
-                response.raise_for_status()
-
+                logger.error(f"429 rate limit: gave up after {MAX_RETRIES} retries for {url}")
+                return None
             retry_after = response.headers.get("Retry-After")
-            if retry_after is not None:
-                delay = float(retry_after)
-            else:
-                delay = min(
-                    BASE_BACKOFF_SECONDS * (2 ** attempt), MAX_BACKOFF_SECONDS
-                )
-
+            delay = float(retry_after) if retry_after is not None else 1.0
             logger.warning(
-                f"Got {response.status_code} for {url}, "
-                f"retrying in {delay:.1f}s (attempt {attempt + 1}/{MAX_RETRIES})"
+                f"429 rate limited for {url}, waiting {delay:.1f}s "
+                f"(attempt {attempt + 1}/{MAX_RETRIES})"
             )
             time.sleep(delay)
             continue
 
-        response.raise_for_status()
+        if status >= 500:
+            if attempt == MAX_RETRIES:
+                logger.error(f"Server error {status}: gave up after {MAX_RETRIES} retries for {url}")
+                return None
+            delay = BASE_BACKOFF_SECONDS * (2 ** attempt)  # 1s, 2s, 4s
+            logger.warning(
+                f"Server error {status} for {url}, retrying in {delay:.1f}s "
+                f"(attempt {attempt + 1}/{MAX_RETRIES})"
+            )
+            time.sleep(delay)
+            continue
+
+        if status >= 400:
+            logger.error(f"Client error {status} for {url}, not retrying")
+            return None
+
         return response
 
-    return response
+    return None
 
 
 def search_tro_cases():
@@ -58,10 +72,9 @@ def search_tro_cases():
         "filed_after": "2020-01-01",
     }
 
-    try:
-        response = request_with_retry(SEARCH_URL, params=params)
-    except requests.RequestException as e:
-        logger.error(f"Error searching TRO cases: {e}")
+    response = request_with_retry(SEARCH_URL, params=params)
+    if response is None:
+        logger.error("Failed to search TRO cases, returning empty list")
         return []
 
     data = response.json()
@@ -83,10 +96,9 @@ def search_tro_cases():
 
 
 def fetch_parties(docket_id):
-    try:
-        response = request_with_retry(PARTIES_URL, params={"docket": docket_id})
-    except requests.RequestException as e:
-        logger.error(f"Error fetching parties for docket {docket_id}: {e}")
+    response = request_with_retry(PARTIES_URL, params={"docket": docket_id})
+    if response is None:
+        logger.error(f"Failed to fetch parties for docket {docket_id}")
         return []
 
     data = response.json()
