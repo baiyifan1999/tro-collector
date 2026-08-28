@@ -4,3 +4,4 @@ mysql-connector-python
 fastapi
 uvicorn
 apscheduler
+minio

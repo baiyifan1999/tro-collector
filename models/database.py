@@ -47,6 +47,21 @@ def init_db():
         """
     )
 
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS documents (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            case_id INT,
+            doc_type VARCHAR(50),
+            minio_path TEXT,
+            source_url TEXT,
+            extracted TINYINT DEFAULT 0,
+            es_synced TINYINT DEFAULT 0,
+            FOREIGN KEY (case_id) REFERENCES cases(id)
+        )
+        """
+    )
+
     conn.commit()
     cursor.close()
     conn.close()
