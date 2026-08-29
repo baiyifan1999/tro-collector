@@ -1,8 +1,11 @@
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Form, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from auth.jwt_handler import create_token, verify_token
+from auth.users import get_user_hash, verify_password
 from collectors.logger import collector_logger as logger
 from models.database import get_connection
 from search.es_client import get_client
@@ -12,9 +15,15 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+_bearer = HTTPBearer()
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(_bearer)) -> str:
+    return verify_token(credentials.credentials)
 
 
 def search_es(
@@ -77,13 +86,25 @@ def _search_mysql(company: str) -> list:
     return rows
 
 
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...)):
+    hashed = get_user_hash(username)
+    if not hashed or not verify_password(password, hashed):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="用户名或密码错误",
+        )
+    token = create_token(username)
+    return {"access_token": token, "token_type": "bearer"}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
 @app.get("/cases")
-def get_cases():
+def get_cases(current_user: str = Depends(get_current_user)):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, case_name, court, date_filed, docket_number FROM cases")
@@ -100,6 +121,7 @@ def search(
     court: Optional[str] = None,
     after_date: Optional[str] = None,
     min_score: Optional[int] = None,
+    current_user: str = Depends(get_current_user),
 ):
     # Try ES first
     try:
