@@ -5,6 +5,7 @@ fastapi
 uvicorn
 apscheduler
 minio
+elasticsearch
 pdfplumber
 pdf2image
 pytesseract
