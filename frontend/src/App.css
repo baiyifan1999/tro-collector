@@ -1,0 +1,177 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #FAF9F5;
+  --card:      #FFFFFF;
+  --text:      #1A1A1A;
+  --muted:     #6B6B6B;
+  --accent:    #D97757;
+  --accent-hv: #C4663F;
+  --border:    #E5E4DF;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body { background: var(--bg); color: var(--text); font-family: var(--font); }
+
+/* ── Nav ── */
+.nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; }
+.nav-logo {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+.nav-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.nav-sub { font-size: 13px; color: var(--muted); }
+
+/* ── Main ── */
+.main { max-width: 760px; margin: 0 auto; padding: 48px 24px 64px; }
+
+/* ── Hero ── */
+.hero { margin-bottom: 32px; }
+.hero h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; }
+.hero p  { margin-top: 8px; font-size: 15px; color: var(--muted); line-height: 1.6; }
+
+/* ── Search bar ── */
+.search-row { display: flex; gap: 10px; }
+.search-input {
+  flex: 1;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: var(--font);
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(217,119,87,0.15);
+}
+.search-btn {
+  height: 48px;
+  padding: 0 24px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: var(--font);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+.search-btn:hover:not(:disabled) { background: var(--accent-hv); }
+.search-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+/* ── Filters ── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.filter-select, .filter-input {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.filter-select:focus, .filter-input:focus { border-color: var(--accent); }
+.filter-input { width: 140px; }
+.filter-input::placeholder { color: var(--muted); }
+
+/* ── Result count ── */
+.result-count { margin: 28px 0 14px; font-size: 13px; color: var(--muted); }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 12px;
+  transition: box-shadow 0.15s ease;
+}
+.card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.card-name { font-size: 16px; font-weight: 600; line-height: 1.3; }
+
+/* Risk badge */
+.badge {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  line-height: 1.6;
+}
+.badge-low  { background: #D1FAE5; color: #065F46; }
+.badge-mid  { background: #FEF3C7; color: #92400E; }
+.badge-high { background: #FEE2E2; color: #991B1B; }
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.platform-tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #F3F3F0;
+  color: var(--muted);
+}
+.court-text { font-size: 13px; color: var(--muted); }
+
+.card-case  { font-size: 14px; color: var(--muted); margin-bottom: 6px; }
+.card-date  { font-size: 12px; color: #9B9B9B; }
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+.source-link {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  transition: text-decoration 0.15s ease;
+}
+.source-link:hover { text-decoration: underline; }
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--muted);
+}
+.empty-icon { font-size: 40px; margin-bottom: 16px; }
+.empty h3   { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.empty p    { font-size: 14px; line-height: 1.6; }
