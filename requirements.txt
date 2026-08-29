@@ -9,3 +9,4 @@ elasticsearch
 pdfplumber
 pdf2image
 pytesseract
+rapidfuzz

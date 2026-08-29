@@ -69,6 +69,19 @@ def init_db():
         """
     )
 
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS risk_scores (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            company_name VARCHAR(500) NOT NULL,
+            risk_score INT DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_company_name (company_name(255))
+        )
+        """
+    )
+
     conn.commit()
     cursor.close()
     conn.close()
