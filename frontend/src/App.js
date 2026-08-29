@@ -1,27 +1,22 @@
 import { useState } from 'react';
 import './App.css';
 
-const API = 'http://localhost:8000';
+const API = 'http://127.0.0.1:8000';
 
 const PLATFORMS = ['', 'Amazon', 'eBay', 'Wish', 'Walmart'];
-const COURTS    = ['', 'ilnd', 'cacd', 'nysd'];
-const COURT_LABELS = { ilnd: 'N.D. Illinois', cacd: 'C.D. California', nysd: 'S.D. New York' };
-
-function badgeClass(score) {
-  if (score == null) return null;
-  if (score >= 70) return 'badge badge-high';
-  if (score >= 40) return 'badge badge-mid';
-  return 'badge badge-low';
-}
 
 function RiskBadge({ score }) {
   if (score == null) return null;
-  return <span className={badgeClass(score)}>风险 {score}</span>;
+  const cls =
+    score >= 70 ? 'badge badge-high' :
+    score >= 40 ? 'badge badge-mid' :
+                  'badge badge-low';
+  return <span className={cls}>风险 {score}</span>;
 }
 
 function ResultCard({ item }) {
   const storeName = item.store_name || item.cleaned_name || item.defendant_name || '—';
-  const court     = COURT_LABELS[item.court] || item.court || '—';
+  const court     = item.court || '—';
 
   return (
     <div className="card">
@@ -69,10 +64,10 @@ export default function App() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ company: query.trim() });
-      if (platform)  params.set('platform',   platform);
-      if (court)     params.set('court',       court);
-      if (afterDate) params.set('after_date',  afterDate);
-      if (minScore)  params.set('min_score',   minScore);
+      if (platform)  params.set('platform',  platform);
+      if (court)     params.set('court',      court);
+      if (afterDate) params.set('after_date', afterDate);
+      if (minScore)  params.set('min_score',  minScore);
 
       const res  = await fetch(`${API}/search?${params}`);
       const data = await res.json();
@@ -86,7 +81,6 @@ export default function App() {
 
   return (
     <>
-      {/* Nav */}
       <nav className="nav">
         <div className="nav-brand">
           <div className="nav-logo" />
@@ -95,15 +89,12 @@ export default function App() {
         <span className="nav-sub">供应商风险查询系统</span>
       </nav>
 
-      {/* Main */}
       <main className="main">
-        {/* Hero */}
         <div className="hero">
           <h1>查询供应商侵权记录</h1>
           <p>输入公司名或店铺名，查询美国联邦法院 TRO 案件记录</p>
         </div>
 
-        {/* Search */}
         <form onSubmit={handleSearch}>
           <div className="search-row">
             <input
@@ -129,17 +120,13 @@ export default function App() {
               ))}
             </select>
 
-            <select
-              className="filter-select"
+            <input
+              className="filter-input"
+              type="text"
+              placeholder="法院（如 ilnd）"
               value={court}
               onChange={e => setCourt(e.target.value)}
-            >
-              {COURTS.map(c => (
-                <option key={c} value={c}>
-                  {c ? COURT_LABELS[c] : '全部法院'}
-                </option>
-              ))}
-            </select>
+            />
 
             <input
               className="filter-input"
@@ -150,7 +137,7 @@ export default function App() {
             />
 
             <input
-              className="filter-input"
+              className="filter-input filter-input--sm"
               type="number"
               min="0"
               max="100"
@@ -161,7 +148,6 @@ export default function App() {
           </div>
         </form>
 
-        {/* Results */}
         {results !== null && (
           results.length > 0 ? (
             <>
@@ -172,7 +158,7 @@ export default function App() {
             </>
           ) : (
             <div className="empty">
-              <div className="empty-icon">🔍</div>
+              <div className="empty-icon">📭</div>
               <h3>未找到相关记录</h3>
               <p>请尝试简化搜索词，或直接搜索英文店铺名</p>
             </div>
