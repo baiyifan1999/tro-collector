@@ -71,6 +71,19 @@ def init_db():
 
     cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS alert_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            case_id INT,
+            triggered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            notified TINYINT DEFAULT 0,
+            FOREIGN KEY (case_id) REFERENCES cases(id),
+            UNIQUE KEY uq_alert_case (case_id)
+        )
+        """
+    )
+
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS risk_scores (
             id INT AUTO_INCREMENT PRIMARY KEY,
             company_name VARCHAR(500) NOT NULL,

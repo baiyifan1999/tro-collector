@@ -9,6 +9,7 @@ from collectors.logger import collector_logger as logger
 from collectors.pdf_collector import collect_documents
 from collectors.pdf_parser import parse_schedule_a
 from models.database import get_connection, init_db, save_cases
+from alerts.notifier import check_new_cases, send_alert
 from risk.scorer import update_risk_scores
 from search.sync import sync_pending_defendants
 from storage.minio_client import get_presigned_url
@@ -88,6 +89,8 @@ def daily_job():
         clean_defendants()
         sync_pending_defendants()
         update_risk_scores()
+        new_cases = check_new_cases()
+        send_alert(new_cases)
         logger.info("定时任务完成")
 
     except Exception as e:
