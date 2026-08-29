@@ -112,11 +112,14 @@ def _search_mysql(company: str) -> list:
             c.court,
             c.date_filed,
             c.docket_number,
-            doc.source_url
+            doc.source_url,
+            rs.risk_score
         FROM defendants d
         JOIN cases c ON d.case_id = c.id
         LEFT JOIN documents doc ON doc.id = d.source_doc_id
+        LEFT JOIN risk_scores rs ON rs.company_name = d.cleaned_name
         WHERE d.cleaned_name LIKE %s AND d.is_valid = 1
+        ORDER BY c.date_filed DESC
         """,
         (f"%{company}%",),
     )
