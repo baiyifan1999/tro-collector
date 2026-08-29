@@ -91,6 +91,10 @@ def daily_job():
         update_risk_scores()
         new_cases = check_new_cases()
         send_alert(new_cases)
+
+        from scripts.health_check import run_health_check
+        run_health_check()
+
         logger.info("定时任务完成")
 
     except Exception as e:
