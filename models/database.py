@@ -44,6 +44,11 @@ def init_db():
             id INT AUTO_INCREMENT PRIMARY KEY,
             case_id INT,
             defendant_name TEXT,
+            cleaned_name TEXT,
+            is_valid TINYINT DEFAULT 1,
+            platform VARCHAR(100),
+            source_doc_id INT,
+            es_synced TINYINT DEFAULT 0,
             FOREIGN KEY (case_id) REFERENCES cases(id)
         )
         """

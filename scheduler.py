@@ -9,6 +9,7 @@ from collectors.logger import collector_logger as logger
 from collectors.pdf_collector import collect_documents
 from collectors.pdf_parser import parse_schedule_a
 from models.database import get_connection, init_db, save_cases
+from search.sync import sync_pending_defendants
 from storage.minio_client import get_presigned_url
 
 PDF_TMP_DIR = "/tmp/tro_pdfs"
@@ -84,6 +85,7 @@ def daily_job():
             logger.error(f"PDF 采集/解析异常: {e}")
 
         clean_defendants()
+        sync_pending_defendants()
         logger.info("定时任务完成")
 
     except Exception as e:
