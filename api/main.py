@@ -149,7 +149,7 @@ def health():
 @app.get("/cases")
 def get_cases(
     # current_user: str = Depends(get_current_user),  # TODO: re-enable in production
-    _: None = Depends(check_rate_limit),
+    # _: None = Depends(check_rate_limit),  # TODO: re-enable in production
 ):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -168,7 +168,7 @@ def search(
     after_date: Optional[str] = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
     min_score: Optional[int] = Query(default=None, ge=0, le=100),
     # current_user: str = Depends(get_current_user),  # TODO: re-enable in production
-    _: None = Depends(check_rate_limit),
+    # _: None = Depends(check_rate_limit),  # TODO: re-enable in production
 ):
     # Try ES first
     try:
