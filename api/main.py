@@ -1,7 +1,11 @@
+import time
+from collections import defaultdict
 from typing import Optional
 
-from fastapi import Depends, FastAPI, Form, HTTPException, status
+from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from auth.jwt_handler import create_token, verify_token
@@ -19,11 +23,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "输入参数格式不正确"},
+    )
+
+
+class RateLimiter:
+    def __init__(self, max_requests: int = 60, window: int = 60):
+        self.max_requests = max_requests
+        self.window = window
+        self._timestamps: dict[str, list[float]] = defaultdict(list)
+
+    def check(self, ip: str) -> None:
+        now = time.monotonic()
+        cutoff = now - self.window
+        ts = self._timestamps[ip]
+        # drop timestamps outside the window
+        self._timestamps[ip] = [t for t in ts if t > cutoff]
+        if len(self._timestamps[ip]) >= self.max_requests:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="请求过于频繁，请稍后再试",
+            )
+        self._timestamps[ip].append(now)
+
+
+rate_limiter = RateLimiter()
+
 _bearer = HTTPBearer()
 
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(_bearer)) -> str:
     return verify_token(credentials.credentials)
+
+
+def check_rate_limit(request: Request) -> None:
+    ip = request.client.host if request.client else "unknown"
+    rate_limiter.check(ip)
 
 
 def search_es(
@@ -104,7 +144,10 @@ def health():
 
 
 @app.get("/cases")
-def get_cases(current_user: str = Depends(get_current_user)):
+def get_cases(
+    current_user: str = Depends(get_current_user),
+    _: None = Depends(check_rate_limit),
+):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, case_name, court, date_filed, docket_number FROM cases")
@@ -116,12 +159,13 @@ def get_cases(current_user: str = Depends(get_current_user)):
 
 @app.get("/search")
 def search(
-    company: str,
-    platform: Optional[str] = None,
-    court: Optional[str] = None,
-    after_date: Optional[str] = None,
-    min_score: Optional[int] = None,
+    company: str = Query(min_length=1, max_length=100),
+    platform: Optional[str] = Query(default=None, max_length=50),
+    court: Optional[str] = Query(default=None, max_length=100),
+    after_date: Optional[str] = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
+    min_score: Optional[int] = Query(default=None, ge=0, le=100),
     current_user: str = Depends(get_current_user),
+    _: None = Depends(check_rate_limit),
 ):
     # Try ES first
     try:

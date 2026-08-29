@@ -11,5 +11,5 @@ pdf2image
 pytesseract
 rapidfuzz
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 python-multipart

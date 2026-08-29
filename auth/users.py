@@ -1,22 +1,21 @@
 import os
 
+import bcrypt
 from dotenv import load_dotenv
-from passlib.context import CryptContext
 
 load_dotenv()
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_raw = os.getenv("ADMIN_PASSWORD", "changeme").encode()
+ADMIN_PASSWORD_HASH: bytes = bcrypt.hashpw(_raw, bcrypt.gensalt())
 
-ADMIN_PASSWORD_HASH = _pwd_context.hash(os.getenv("ADMIN_PASSWORD", "changeme"))
-
-USERS: dict[str, str] = {
+USERS: dict[str, bytes] = {
     "admin": ADMIN_PASSWORD_HASH,
 }
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_context.verify(plain, hashed)
+def verify_password(plain: str, hashed: bytes) -> bool:
+    return bcrypt.checkpw(plain.encode(), hashed)
 
 
-def get_user_hash(username: str) -> str | None:
+def get_user_hash(username: str) -> bytes | None:
     return USERS.get(username)
