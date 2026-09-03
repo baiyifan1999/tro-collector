@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 
-const API = 'http://127.0.0.1:8000';
+const API = 'https://tro-collector-production.up.railway.app';
 
 const PLATFORMS = ['', 'Amazon', 'eBay', 'Wish', 'Walmart'];
 
